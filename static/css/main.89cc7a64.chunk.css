@@ -1,2 +1,0 @@
-@import url(https://fonts.googleapis.com/css2?family=Kadwa&display=swap);body{font-family:"Kadwa",serif;justify-content:center;align-items:center;height:100vh;margin:0;background-color:#f9f9f9}body,form{display:flex}form{flex-direction:column;grid-gap:1rem;gap:1rem;padding:2rem;background-color:#fff;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,.1)}button,input{font-family:inherit;padding:.6rem;border:1px solid #ccc;border-radius:4px}button{background-color:#333;color:#fff;cursor:pointer}
-/*# sourceMappingURL=main.89cc7a64.chunk.css.map */

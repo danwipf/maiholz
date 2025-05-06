@@ -1,0 +1,93 @@
+@import url('https://fonts.googleapis.com/css2?family=Kadwa:wght@400;700&display=swap');
+
+/* ====== Allgemeine Einstellungen ====== */
+body {
+  margin: 0;
+  font-family: 'Kadwa', serif;
+  background-color: #f9f9f9;
+  overflow-x: hidden;
+}
+
+h1 {
+  margin: 0;
+}
+
+/* ====== Header ====== */
+.header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 64px;
+  background-color: #2d4300;
+  color: white;
+  padding: 0 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  z-index: 1000;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.logo {
+  font-weight: 700;
+  font-size: 1.5rem;
+}
+
+/* ====== Navigation ====== */
+.nav {
+  display: flex;
+  gap: 1.5rem;
+}
+
+.nav a {
+  color: white;
+  text-decoration: none;
+  font-weight: 400;
+  transition: opacity 0.2s ease;
+}
+
+.nav a:hover {
+  opacity: 0.8;
+}
+
+/* ====== Hamburger-Menü (Mobile) ====== */
+.menu-toggle {
+  font-size: 1.8rem;
+  cursor: pointer;
+  display: none;
+  user-select: none;
+}
+
+/* ====== Mobile Layout ====== */
+@media (max-width: 600px) {
+  .menu-toggle {
+    display: block;
+  }
+
+  .nav {
+    position: absolute;
+    top: 64px;
+    right: 0;
+    width: 100%;
+    background-color: #2d4300;
+    flex-direction: column;
+    display: none;
+  }
+
+  .nav.open {
+    display: flex;
+  }
+
+  .nav a {
+    padding: 1rem;
+    border-top: 1px solid #3a3a3a;
+  }
+}
+
+/* ====== Main Content Bereich ====== */
+.main-content {
+  padding: 6rem 1rem 2rem;
+  max-width: 900px;
+  margin: 0 auto;
+}

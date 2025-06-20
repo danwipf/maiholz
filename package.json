@@ -2,7 +2,7 @@
   "name": "maiholz.nanayoga.ch",
   "version": "0.1.0",
   "private": true,
-  "homepage": "https://danwipf.github.io/maiholz.nanayoga.ch",
+  "homepage": "https://maiholz.nanayoga.ch",
 
   "dependencies": {
     "@testing-library/dom": "^10.4.0",

@@ -9,9 +9,9 @@ function DashboardPage() {
 
     const [menuOpen, setMenuOpen] = useState(false);
 
-    const versionDate = config?.version;
     const latestVersion = "200620251512";
-    const outdated = versionDate < latestVersion;
+    const versionDate = config?.version ?? null;
+    const outdated = versionDate !== null && versionDate < latestVersion;
 
     const handleUpload = (event) => {
         const file = event.target.files[0];
@@ -64,7 +64,7 @@ function DashboardPage() {
                     <p className="warning">⚠️ Deine Konfiguration ist veraltet!</p>
                 )}
                 {!outdated && (
-                    <p className="warning">✅️ Deine Konfiguration <b>{config.version}</b> ist aktuell!</p>
+                    <p className="warning">✅️ Deine Konfiguration ist aktuell!</p>
                 )}
 
                 {config && (

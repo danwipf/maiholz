@@ -1,182 +1,104 @@
-// src/pages/DashboardPage.js
-import React, { useEffect, useState } from 'react';
-import '../index.css';
+import React, { useState } from "react";
+import "../css/DashboardPage.css";
 
 function DashboardPage() {
-  const deviceIdSauna = localStorage.getItem('deviceIDSauna');
-  const authKey = localStorage.getItem('token');
-  const baseUrl = localStorage.getItem('baseURL');
-  const timestampoffset = Number(localStorage.getItem('timestampoffset') || 0);
+    const [config, setConfig] = useState(() => {
+        const saved = localStorage.getItem("settings");
+        return saved ? JSON.parse(saved) : null;
+    });
 
-  // Einstellungen
-  const [duration, setDuration] = useState(
-    Number(localStorage.getItem('duration') || 20)
-  ); // in Minuten
-  const [startTime, setStartTime] = useState(
-    localStorage.getItem('startTime') || ''
-  );
+    const [menuOpen, setMenuOpen] = useState(false);
 
-  // Countdown & Status
-  const [remainingTime, setRemainingTime] = useState(null);
+    const versionDate = config?.version;
+    const latestVersion = "200620251512";
+    const outdated = versionDate < latestVersion;
 
-  // Manuelles Ein-/Ausschalten
-  const toggleSauna = async () => {
-    try {
-      await fetch(`${baseUrl}/device/relay/control`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: new URLSearchParams({
-          id: deviceIdSauna,
-          auth_key: authKey,
-          channel: 0,
-          turn: 'toggle',
-        }),
-      });
-    } catch (error) {
-      alert('Netzwerkfehler: ' + error.message);
-    }
-  };
+    const handleUpload = (event) => {
+        const file = event.target.files[0];
+        if (!file) return;
 
-  // Manuelles Starten mit Timer (wenn man direkt starten möchte)
-  const startSauna = async () => {
-    try {
-      await fetch(`${baseUrl}/device/relay/control`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: new URLSearchParams({
-          id: deviceIdSauna,
-          auth_key: authKey,
-          channel: 0,
-          turn: 'on',
-          timer: duration * 60, // in Sekunden
-        }),
-      });
-    } catch (error) {
-      console.error('Fehler beim Starten:', error);
-    }
-  };
+        const reader = new FileReader();
+        reader.onload = () => {
+            try {
+                const json = JSON.parse(reader.result);
+                const requiredKeys = [
+                    "duckdns",
+                    "serverPort",
+                    "jellyfinPort",
+                    "shellySaunaPort",
+                    "shellyLampePort",
+                    "shellyHotpotPort",
+                    "shellyServerPort",
+                    "version"
+                ];
 
-  // 1) Dauer ändern und in localStorage schreiben
-  const handleDurationChange = (e) => {
-    const mins = Number(e.target.value);
-    setDuration(mins);
-    localStorage.setItem('duration', mins.toString());
-  };
+                const isValid = requiredKeys.every((key) => key in json);
+                if (!isValid) {
+                    alert("Fehlende Felder in der JSON-Datei.");
+                    return;
+                }
 
-  // 2) Startzeit ändern und in localStorage schreiben
-  const handleStartTimeChange = (e) => {
-    const dt = e.target.value;
-    setStartTime(dt);
-    localStorage.setItem('startTime', dt);
-  };
-
-  // Automatische Aktivierung zur geplanten Zeit
-  useEffect(() => {
-    if (!startTime) return;
-    const scheduleInterval = setInterval(() => {
-      const now = new Date();
-      const start = new Date(startTime);
-      // Wenn der Unterschied <1s ist, auslösen
-      if (Math.abs(now - start) < 1000) {
-        startSauna();
-        clearInterval(scheduleInterval);
-      }
-    }, 1000);
-    return () => clearInterval(scheduleInterval);
-  }, [startTime, duration]);
-
-  // Restlaufzeit vom Shelly ermitteln
-  useEffect(() => {
-    let timerInterval;
-
-    const fetchTime = async () => {
-      try {
-        const res = await fetch(
-          `${baseUrl}/device/status?id=${deviceIdSauna}&auth_key=${authKey}`
-        );
-        const json = await res.json();
-
-        const shellyTime = json.data.device_status.unixtime;
-        const timerStarted = json.data.device_status.relays[0].timer_started;
-        const timerDur = json.data.device_status.relays[0].timer_duration;
-
-        const clientTime = Math.floor(Date.now() / 1000);
-        const timeOffset = clientTime - shellyTime;
-
-        // verbleibende Zeit berechnen (inkl. user-defined offset)
-        const remaining =
-          timerStarted + timerDur -
-          (shellyTime + timeOffset) -
-          timestampoffset;
-
-        setRemainingTime(Math.max(0, remaining));
-      } catch (err) {
-        console.error('Timer-Fehler:', err);
-        setRemainingTime('Fehler');
-      }
+                localStorage.setItem("settings", JSON.stringify(json));
+                setConfig(json);
+            } catch (err) {
+                alert("Ungültige JSON-Datei!");
+            }
+        };
+        reader.readAsText(file);
     };
 
-    fetchTime();
-    timerInterval = setInterval(fetchTime, 1000);
-    return () => clearInterval(timerInterval);
-  }, [baseUrl, deviceIdSauna, authKey, timestampoffset]);
+    return (
+        <div className="dashboard-container">
 
-  return (
-    <div className="settings-container">
-      <div className="settings-box">
-        <h1>Dashboard</h1>
+            <main className="main-content">
+                <h1>Dashboard</h1>
 
-        {/* Manuelles Toggle */}
-        <button onClick={toggleSauna}>
-          Sauna ein-/ausschalten
-        </button>
+                {!config || outdated ? (
+                    <>
+                        <p>Bitte JSON-Konfigurationsdatei hochladen:</p>
+                        <input type="file" accept="application/json" onChange={handleUpload} />
+                    </>
+                ) : null}
 
-        {/* Manueller Start mit Timer */}
-        <button
-          onClick={startSauna}
-        >
-          Jetzt starten ({duration} min)
-        </button>
+                {outdated && (
+                    <p className="warning">⚠️ Deine Konfiguration ist veraltet!</p>
+                )}
+                {!outdated && (
+                    <p className="warning">✅️ Deine Konfiguration <b>{config.version}</b> ist aktuell!</p>
+                )}
 
-        {/* Einstellung: Dauer */}
-        <div style={{ marginTop: '1rem' }}>
-          <label>
-            <strong>Laufdauer:</strong>{' '}
-            <select
-              value={duration}
-              onChange={handleDurationChange}
-            >
-              {[15, 30, 45, 60, 75, 90, 105, 120, 135, 150, 165, 180, 195, 110, 125, 240].map((min) => (
-                <option key={min} value={min}>
-                  {min} Min.
-                </option>
-              ))}
-            </select>
-          </label>
+                {config && (
+                    <section className="config-section">
+                        <h2>Geladene Einstellungen</h2>
+
+                        <table className="settings-table">
+                            <thead>
+                            <tr>
+                                <th>Kategorie</th>
+                                <th>Schlüssel</th>
+                                <th>Wert</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr><td>General</td><td>DuckDNS</td><td>{config.duckdns}</td></tr>
+
+                            <tr><td>Server</td><td>Server Port</td><td>{config.serverPort}</td></tr>
+                            <tr><td>Server</td><td>Jellyfin Port</td><td>{config.jellyfinPort}</td></tr>
+
+                            <tr><td>Shelly</td><td>Sauna Port</td><td>{config.shellySaunaPort}</td></tr>
+                            <tr><td>Shelly</td><td>Lampe Port</td><td>{config.shellyLampePort}</td></tr>
+                            <tr><td>Shelly</td><td>Hotpot Port</td><td>{config.shellyHotpotPort}</td></tr>
+                            <tr><td>Shelly</td><td>Server Port</td><td>{config.shellyServerPort}</td></tr>
+
+                            <tr><td>Version Control</td><td>Version</td><td>{config.version}</td></tr>
+                            </tbody>
+                        </table>
+                    </section>
+
+                )}
+            </main>
         </div>
-
-        {/* Einstellung: Geplante Startzeit */}
-        <div style={{ marginTop: '0.5rem' }}>
-          <label>
-            <strong>Geplante Startzeit:</strong>{' '}
-            <input
-              type="datetime-local"
-              value={startTime}
-              onChange={handleStartTimeChange}
-            />
-          </label>
-        </div>
-
-        {/* Restlaufzeit-Anzeige */}
-        <div style={{ marginTop: '1.5rem' }}>
-          <strong>Verbleibende Zeit:</strong>{' '}
-          {typeof remainingTime === 'number'
-            ? `${remainingTime} Sek.`
-            : remainingTime}
-        </div>
-      </div>
-    </div>
-  );
+    );
 }
 
 export default DashboardPage;

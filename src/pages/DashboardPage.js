@@ -56,6 +56,7 @@ function DashboardPage() {
                         <p>Bitte JSON-Konfigurationsdatei hochladen:</p>
                         <input type="file" accept="application/json" onChange={handleUpload} />
                     </>
+
                 ) : null}
 
                 {outdated && (
@@ -65,7 +66,7 @@ function DashboardPage() {
                     <p className="warning">✅️ Deine Konfiguration ist aktuell!</p>
                 )}
 
-                {config && (
+                {config &&  !outdated && (
                     <section className="config-section">
                         <h2>Geladene Einstellungen</h2>
 

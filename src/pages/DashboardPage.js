@@ -7,9 +7,7 @@ function DashboardPage() {
         return saved ? JSON.parse(saved) : null;
     });
 
-    const [menuOpen, setMenuOpen] = useState(false);
-
-    const latestVersion = "200620251512";
+    const latestVersion = "200620252038";
     const versionDate = config?.version ?? null;
     const outdated = versionDate !== null && versionDate < latestVersion;
 
@@ -89,6 +87,13 @@ function DashboardPage() {
                             <tr><td>Shelly</td><td>Lampe Port</td><td>{config.shellyLampePort}</td></tr>
                             <tr><td>Shelly</td><td>Hotpot Port</td><td>{config.shellyHotpotPort}</td></tr>
                             <tr><td>Shelly</td><td>Server Port</td><td>{config.shellyServerPort}</td></tr>
+
+                            <tr><td>Shelly</td><td>Sauna ID</td><td>{config.shellySaunaID}</td></tr>
+                            <tr><td>Shelly</td><td>Lampe ID</td><td>{config.shellyLampeID}</td></tr>
+                            <tr><td>Shelly</td><td>Hotpot ID</td><td>{config.shellyHotpotID}</td></tr>
+                            <tr><td>Shelly</td><td>Server ID</td><td>{config.shellyServerID}</td></tr>
+
+                            <tr><td>Shelly</td><td>Server ID</td><td>{config.shellyCloudKey}</td></tr>
 
                             <tr><td>Version Control</td><td>Version</td><td>{config.version}</td></tr>
                             </tbody>

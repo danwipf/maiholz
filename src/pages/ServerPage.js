@@ -11,7 +11,7 @@ function ServerPage() {
     useEffect(() => {
         const checkStatus = async () => {
             try {
-                const res = await fetchWithTimeout(`http://${settings.duckdns}/status.json`, 1000);
+                const res = await fetchWithTimeout(`https://${settings.duckdns}/status.json`, 1000);
                 const data = await res.json();
                 setServerOnline(data.status === "online");
             } catch (e) {
@@ -32,25 +32,37 @@ function ServerPage() {
         ]);
     }
 
-    const triggerShelly = (label, toggleAfter, reset = false) => {
+    const triggerShelly = async (label, toggleAfter, reset = false) => {
         setLoading(true);
         setLastAction(`Aktion: ${label}`);
 
-        const baseUrl = `http://${settings.duckdns}:${settings.shellyServerPort}`;
-        const sendImageRequest = (url) => {
-            const img = new Image();
-            img.src = url;
+        const cloudUrl = "https://shelly-171-eu.shelly.cloud/device/rpc";
+        const sendCloudRequest = async (delay = 0) => {
+            const body = {
+                id: settings.shellyServerID,
+                auth_key: settings.shellyCloudKey,
+                method: "Switch.Set",
+                params: { id: 0, on: true, toggle_after: toggleAfter }
+            };
+            await new Promise(r => setTimeout(r, delay));
+            await fetch(cloudUrl, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(body)
+            });
         };
 
-        sendImageRequest(`${baseUrl}/rpc/Switch.Set?id=0&on=true&toggle_after=${toggleAfter}`);
+        try {
+            await sendCloudRequest();
 
-        if (reset) {
-            setTimeout(() => {
-                sendImageRequest(`${baseUrl}/rpc/Switch.Set?id=0&on=true&toggle_after=1`);
-                setLoading(false);
-            }, 7000);
-        } else {
-            setTimeout(() => setLoading(false), 1000);
+            if (reset) {
+                await sendCloudRequest(7000); // reset erneut nach 7 Sek senden
+            }
+
+            setTimeout(() => setLoading(false), reset ? 8000 : 1000);
+        } catch (err) {
+            console.error("Fehler beim Cloud-Request:", err);
+            setLoading(false);
         }
     };
 
@@ -89,7 +101,7 @@ function ServerPage() {
                                 ▶ Start
                             </button>
                             <button onClick={() => setModalAction({ label: "Reset", toggle: 6, reset: false })} className="action-button yellow">
-                                ️↺ Reset
+                                ↺ Reset
                             </button>
                         </>
                     )}
